@@ -1,8 +1,14 @@
 **NTK_RFC**: 0010
 
+**Тема**: Viphilama — преобразователь виртуального в физический слой
+
 **Subject**: Viphilama - Virtual to Physical Layer Mapper
 
 ```
+Этот текст описывает изменение в Npv7.
+Он будет включен в финальную документацию, поэтому не стесняйтесь его исправлять.
+Но если вы хотите изменить описанную здесь систему, сначала свяжитесь с нами.
+
 This text describes a change to the Npv7.
 It will be included in the final documentation, so feel free to correct it.
 But if you want to change the system here described, please contact us first.
@@ -10,11 +16,32 @@ But if you want to change the system here described, please contact us first.
 
 # Viphilama
 
+Viphilama позволит Netsukuku расширяться через Интернет, а затем автоматически переключиться на физический уровень, не нарушая стабильности Сети.
+
 Viphilama will permit to Netsukuku to expand itself over the Internet and then
 switch automatically to the physical layer without interfering with the
 stability of the Net.
 
 ## Applications
+
+Viphilama преобразует Netsukuku в гибридную оверлейную сеть, которая расширяет
+исходную структуру Интернета. Ее основные преимущества:
+
+* более быстрое распространение Netsukuku: каждый пользователь с подключением к Интернету может присоединиться к Netsukuku
+
+* создание масштабируемой сети, которая построена на Интернете, но полностью отделена от него
+
+* автоматическое переключение с оверлейной сети Netsukuku на физическую
+
+* свободная регистрация доменных имен (см. ANDNA)
+
+* использование [Carciofo](http://lab.dyne.org/Ntk_carciofo) через Интернет
+
+* обход ограничений NAT: даже при наличии только одного подключения к Интернету можно подключить всю локальную сеть к Viphilama. Внутри Viphilama каждый узел локальной сети получит уникальный IP, поэтому ограничение NAT, налагаемое провайдером (если вам нужно больше IP, вам придется платить), игнорируется
+
+* другое ...?
+
+
 
 Viphilama transforms Netsukuku into a hybrid overlay network which expands the
 original structure of the Internet. Its main advantages are:
@@ -35,6 +62,13 @@ original structure of the Internet. Its main advantages are:
 
 ## Basic idea
 
+Основная идея Viphilama заключается в соединении с помощью интернет-туннелей узлов, которые
+физически не связаны.
+Затем, когда Viphilama обнаруживает, что виртуальную ссылку можно заменить
+физической, она удаляет виртуальную ссылку.
+
+Предположим такой сценарий:
+
 The basic idea of Viphilama is to connect, with Internet tunnels, nodes which
 aren't physically linked.
 Then whenever, Viphilama finds that a virtual link can be replaced by a
@@ -51,6 +85,11 @@ graph TD
 
 ```
 
+Все города связаны интернет-туннелями.
+
+Когда Токио и Москва будут связаны серией физических узлов, Viphilama
+изменит сеть следующим образом:
+
 All the cities are linked with Internet tunnels.
 
 When Tokyo and Moscow will be linked by a series of physical nodes, Viphilama
@@ -63,6 +102,8 @@ graph TD
     Rome <--> Tunnel
     London <--> Tunnel
 ```
+
+Когда даже Москва и Рим будут связаны физическими узлами:
 
 When even Moscow and Rome will be linked by physical nodes:
 
@@ -83,15 +124,21 @@ graph TD
     Rome <--> |ntk nodes| London
 ```
 
+Это только общее описание идеи Viphilama, на самом деле, реализация немного сложнее ;)
+
 This is only the general description of the Viphilama idea, actually, the
 implementation is a bit more complex ;)
 
 
 # Layer
 
+Netsukuku будет разделен на два слоя: виртуальный и физический.
+
 Netsukuku will be split in two layer: the virtual layer and the physical one.
 
 ## The physical layer
+
+Физический уровень — это исходный уровень Netsukuku: каждый узел связан с другими узлами физическими связями (Wi-Fi, кабели, ...). Физический уровень имеет приоритет над виртуальным.
 
 The physical layer is the original Netsukuku layer: every node is linked to
 other nodes by physical links (wifi, cables, ...).
@@ -99,10 +146,47 @@ The physical layer is prioritised over the virtual one.
 
 ## The virtual layer
 
+Виртуальный уровень строится на основе Интернета или любой другой существующей сети. Узлы Netsukuku на этом уровне связаны друг с другом туннелями.
+
 The virtual layer is built upon the Internet or any other existing network.
 The Netsukuku nodes, in this layer, are linked each other by tunnels.
 
-### Coordinates
+### Координаты Coordinates
+
+Узел, чтобы присоединиться к виртуальному слою, должен знать свои физические
+координаты. 
+Использование географических координат необходимо для Viphilama, поскольку он должен
+сопоставить виртуальный слой с физическим, и ему нужен способ измерения
+эффективного расстояния между двумя виртуальными узлами.
+
+Координаты можно получить с помощью онлайн-сервиса карт, например,
+http://maps.google.com или с помощью GPS.
+
+Координаты хранятся на карте Viphilama, которая структурирована
+таким же образом, как карты Netsukuku.
+
+На первом уровне находятся координаты каждого отдельного узла.
+На более высоких уровнях координаты, которые определяют местоположение гнода, устанавливаются на его
+барицентр: это среднее значение координат всех его внутренних узлов.
+
+(Подробное описание карты Viphilama находится в разделе «Карта Viphilama»).
+
+Координаты не влияют на анонимность пользователя хуже, чем Интернет, на самом деле, можно сделать предположение о географическом
+местоположении IP (см. xtraceroute).
+Если пользователь не указывает свое точное местоположение, то метод xtraceroute
+будет использован для получения приблизительного местоположения.
+
+Два узла могут иметь одинаковые координаты. Это происходит, когда они используют неточные
+координаты, т. е. xtraceroute связывает одно и то же местоположение с двумя IP-адресами
+одного и того же города. В этом случае разница их IP-адресов будет использоваться как
+(неточная) мера расстояния.
+Или другими словами:
+
+Пусть d(X, Y) будет физическим расстоянием между узлом X и Y.
+Если d(X,Y) равно нулю, то d(X,Y) равно разнице IP-адресов
+X и Y.
+
+
 
 A node, in order to join in the virtual layer, has to know its physical
 coordinates. 
@@ -139,6 +223,8 @@ Or in other words:
 
 ### Terminology
 
+Виртуальный уровень состоит из тех же элементов, что и физический уровень, поэтому они имеют те же имена, но с префиксом «v».
+
 The virtual layer is composed by the same elements of the physical layer, for
 this reason they have the same names but the are prefixed with 'v'.
 
@@ -152,6 +238,15 @@ this reason they have the same names but the are prefixed with 'v'.
 
 ### Gate node
 
+Два слоя соединены узлами gate. Это узлы, которые принадлежат
+обоим слоям.
+Это означает, что два слоя образуют уникальную сеть.
+
+Сокращенное название узла 
+gate — просто «gate», таким образом его не путают с 
+gnode (узлом группы).
+
+
 The two layers are joined by the gate nodes. They are nodes which belong to
 both layers.
 This means that the two layers form a unique network.
@@ -161,11 +256,32 @@ with gnode (group node).
 
 # Virtual to Physical mapper
 
+Viphilama — это супервизор топологии всей сети, он формирует
+виртуальный слой и объединяет его с физическим, пытаясь достичь наилучшего
+баланса.
+
+Он следует простым правилам:
+
+
 Viphilama is the supervisor of the topology of the entire net, it shapes the
 virtual layer and merges it with the physical one trying to achieve the best
 balance.
 
 It follows simple rules:
+
+* Viphilama просто оптимизирует топологию сети.
+
+* Физический уровень имеет приоритет
+
+* Виртуальный уровень, с точки зрения Netsukuku, должен быть таким же, как физический уровень, поэтому не допускается использование специализированной сети, такой как Kademlia, для формирования его топологии. Это приводит к потере производительности, поскольку виртуальный уровень не оптимизирован для нижней сети (Интернета), но обеспечивает согласованность в сети Netsukuku.
+
+* Каждый узел должен быть подключен физическими или виртуальными связями к своим ближайшим узлам.
+
+* Если узел A физически подключен к B, то A является одним из ближайших узлов к B и наоборот.
+
+* Сеть должна избегать любой фрагментации, стараясь всегда быть компактной.
+
+
  
  * Viphilama just optimises the topology of the network.
 
@@ -179,9 +295,18 @@ It follows simple rules:
 
  * The network must avoid any fragmentation, trying to be always compacted.
 
+
+Давайте углубимся в детали.
+
+
 Let's go into the details.
 
 ## Virtual hooking
+
+Узел, не имеющий физических соседей, находится в черной зоне и по этой причине не может подключиться к физическому уровню. Если у него есть доступ к другой сети, то есть к Интернету, он напрямую подключится к vnode, присоединившись к виртуальному уровню.
+Пусть этот узел подключения будет H.
+
+
 
 A node, which hasn't any physical neighbours, resides in a black zone and, for
 this reason, it can't hook to the physical layer. If it has access to another
@@ -190,6 +315,29 @@ virtual layer.
 Let this hooking node be H.
 
 ### Searching for the nearest vrnode
+
+Первая часть виртуального подключения — это создание виртуальных соединений (IP-туннелей) между H и его ближайшими vrnodes.
+
+Сначала H выбирает случайный vnode, который может быть расположен в любой точке
+земного шара. Этот узел называется Entry Node (EN), поскольку это первый узел
+виртуальной сети, с которым связывается H.
+
+Если H подключается к виртуальному слою в первый раз, он выберет Entry Node из общедоступного списка EN, доступного в Интернете, в противном случае он будет
+обращаться к своему кэшированному списку. Каждый перечисленный EN связан со своими собственными географическими
+координатами, поэтому H может выбрать свой ближайший Entry Node.
+Пусть выбранный Entry Node будет V.
+
+H отправляет V пакет, содержащий его координаты и случайный идентификатор.
+V сверяется со своей картой и пересылает полученный пакет в гнод G, который
+является ближайшим к H.
+Пакет будет пересылаться до тех пор, пока не попадет в I, ближайший узел к H, который
+принадлежит гноду G.
+В этот момент I отправляет пакет ACK в H и включает в него идентификатор.
+Таким образом он подтверждает, что действительно получил исходный пакет, отправленный H.
+
+I является первым vrnode H и называется узлом привязки (anode).
+
+
 
 The first part of the Virtual Hooking is the creation of virtual links
 (ip tunnels) between H and its nearest vrnodes.
@@ -217,6 +365,24 @@ I is the first vrnode of H and it's called Anchorage Node (anode).
 
 ### Linking to other anchorage nodes
 
+Поскольку только одного vrnode на vnode недостаточно для балансировки сети, H
+будет связываться с другими vnode `anchor_links`. Эти vnode являются ближайшими к
+H. `anchor_links` — это значение, пропорциональное пропускной способности H.
+
+Узел I добавляет свой IP-адрес Интернета к полученному пакету и пересылает его
+снова на узел T, так что d(H,T) ~= d(H,I).
+Узел T сделает то же самое (добавит свой IP-адрес и перешлет pkt).
+Когда пакет будет переслан в `anchor_links`-й раз или когда его
+больше не получится пересылать, он отправляется обратно на узел H.
+
+Узел H собирает этот последний пакет и создает виртуальную ссылку (туннель) для
+каждого IP-адреса Интернета, который был сохранен в самом пакете.
+
+Эти связанные узлы являются новыми vrnodes узла H. Они также являются его
+узлом привязки.
+
+
+
 Since only one vrnode per vnode is not sufficient to balance the network, H
 will link to other `anchor_links` vnodes. These vnodes are the nearest to
 H. `anchor_links` is a value proportional to the bandwidth of H.
@@ -233,6 +399,15 @@ These linked nodes are the new vrnodes of the node H. They are also its
 Anchorage Node.
 
 ### Reordering the virtual layer
+
+В этот момент узел H будет подключаться к каждому связанному узлу. Эта процедура называется
+перестановкой ссылок:
+
+Пусть L будет общим vrnode H.
+
+Возможно, некоторые vrnode L находятся ближе к H, в этом случае они
+должны быть связаны с H вместо L. Например:
+
 
 At this point the node H will hook to each linked node. This procedure is
 called link-swapping:
@@ -264,6 +439,27 @@ graph TD
     London <--> Rome
 ```
 
+Переупорядочивание ссылок работает следующим образом:
+
+H отправляет запрос I_AM_VHOOKING в L.
+
+L анализирует свои виртуальные rnodes и сравнивает d(L,vR) с d(H,vR), где vR — это
+vrnode. Если d(H,vR) < d(L,vR), L добавляет IP-адрес Интернета vR в ответный
+пакет.
+
+H получает ответный пакет L и пытается создать виртуальную ссылку на каждый
+vR, указанный в том же пакете.
+
+H записывает список всех узлов vR, которые были успешно связаны с H. Этот список отправляется обратно в L.
+
+L читает этот последний список и удаляет все свои ссылки на узлы vR, которые были успешно связаны с H.
+
+Эта же процедура повторяется для каждого vrnode H.
+
+В конце концов, H выбирает один из своих vrnodes и подключается к нему классическим
+методом.
+
+
 The reordering of the links works in this way:
 
 H sends the I_AM_VHOOKING request to L.
@@ -287,10 +483,25 @@ to it.
 
 ### Gate hooking
 
+Когда узел вентиля физически связан с другим узлом вентиля, они используют процедуру v-связывания для переупорядочивания своих связей.
+
+
 When a gate node is linked physically to another gate node, they use the
 v-linking procedure to reorder their links.
 
 ## Virtual topology
+
+Узел H останется виртуально связанным с общим узлом L, если и только если
+нет физического маршрута, соединяющего H с L.
+
+Когда H замечает (анализируя пакеты QSPN), что L можно достичь через
+физический маршрут, он удаляет виртуальную ссылку.
+
+Обратите внимание, что vnode, который не имеет никаких виртуальных ссылок, но подключен к
+Интернету и физическим узлам ntk, всегда является vnode. Фактически, подключающийся vnode
+может создать виртуальную ссылку на него.
+
+
 
 The node H will remain virtually linked to a generic node L if and only if
 there isn't a physical route which connects H to L.
@@ -303,6 +514,16 @@ Internet and to physical ntk nodes is always a vnode. In fact, a hooking vnode
 may create a virtual link to it.
 
 ## Anchorage node
+
+Первые vrnodes, связанные с узлом, который только что подключился к виртуальному слою, являются узлами привязки.
+
+Связи с узлами привязки никогда не разрушаются.
+
+Каждый узел всегда будет пытаться оставаться связанным со своими анодами (вот почему они называются узлами привязки), таким образом, топология сети не будет
+фрагментирована.
+
+Например:
+
 
 The first vrnodes linked to the node, which has only just hooked to the virtual
 layer, are the Anchorage Nodes.
@@ -321,12 +542,20 @@ graph TD
     AN <--> X(rest of the virtual layer)
 ```
 
+Если H удалит свою ссылку на свой якорный узел AN, группа vnode G останется изолированной.
+
+Каждый узел будет связан с числом анодов, пропорциональным его пропускной способности.
+
+
 If H deletes its link to its anchorage node AN, the group of vnodes G will be
 left isolated.
 
 Each node will be linked to a number of anodes proportional to its bandwidth.
 
 ### Anchorage Nodes and the Link Swapping procedure
+
+Процедура обмена ссылками просто сместит положение узла привязки. Например:
+
 
 The link swapping procedure will just shift the Anchorage Node position. For
 example:
@@ -364,6 +593,18 @@ graph TD
 
 ### Death and rebirth of an Anchorage Node
 
+Когда один или несколько анодов умирают, vnode восстанавливает свое оптимальное количество
+анодов: он использует один из оставшихся анодов в качестве узла входа, создавая все
+необходимые vlinks к новым узлам привязки.
+
+Если все аноды умирают, vnode повторно подключается к виртуальному слою, сохраняя
+все свои остальные vrnodes.
+
+Узлы привязки всегда должны быть узлами, к которым нельзя добраться через
+физический маршрут.
+
+
+
 When one or more anodes die, the vnode will reestablish its optimal number of
 anodes: it uses one of the remaining anodes as an entry node, creating all the
 necessary vlinks to the new anchorage nodes.
@@ -376,6 +617,14 @@ physical route.
 
 ## Viphilama map
 
+Карта Viphilama похожа на карты Netsukuku, но вместо сохранения
+`rtt` узлов и их маршрутов она просто сохраняет их координаты.
+Она также разделена на уровни.
+
+На карте мультибарицентр связан с каждым (g)узлом.
+
+
+
 The Viphilama map is similar to the Netsukuku maps, but instead of keeping the
 `rtt` of the nodes and their routes it just maintains their coordinates.
 It is divided in levels too.
@@ -383,6 +632,13 @@ It is divided in levels too.
 In the map, the multi-barycenter is associated to each (g)node.
 
 ### Multi-barycenter
+
+В идеальном случае узел будет компактным и плотным, а его барицентр будет
+находиться точно в его центре. 
+В этом случае можно рассматривать узел как одну точку, таким образом, на более высоком уровне, было бы достаточно знать только его барицентр, а не все координаты его узлов. 
+Однако это не всегда верно, например, рассмотрим этот групповой узел:
+
+
 
 In the ideal case, a gnode would be compact and dense and its barycenter would
 be exactly in its centre. 
@@ -401,6 +657,31 @@ However, this isn't always true, foe example, consider this group node:
     +  the barycenter
     O  another node
 ```
+
+Все точки являются узлами (nodes) одного и того же узла (gnode). Узлы слева хорошо
+сгруппированы, в то время как два узла справа находятся далеко от них.
+Центр масс находится в пустой области: ни одного узла группы узлов нет.
+
+В этом случае координаты центра масс вводят в заблуждение, например, узел
+O считает, что узел
+O находится очень близко к себе, но на самом деле, это просто центр масс, который
+находится близко.
+
+Решение состоит в том, чтобы использовать мульти-барицентр вместо одного
+барицентра: барицентр назначается каждому блоку узлов, который
+образует узел.
+В приведенном выше примере будет два барицентра, один для блока
+слева, а другой для блока справа.
+
+Мульти-барицентр одного узла совпадает с его центром масс.
+Мульти-барицентр может быть также назначен группе более высоких уровней (группе
+групп узлов и т. д.).
+
+Очевидно, что использование большего количества координат требует большего использования памяти, однако,
+при увеличении количества узлов блоки становятся более уплотненными, поэтому
+их количество и количество барицентров уменьшается.
+
+
 All the points are nodes of the same gnode. The nodes on the left are well
 grouped, while the two nodes on the right are far away from them.
 The barycenter is in an empty area: not a single node of the group node is
@@ -426,6 +707,17 @@ their number and that of the barycenters decreases.
 
 ## Concurrency
 
+Пусть H и G будут двумя близкими узлами, которые подключаются почти одновременно (сначала H, затем G).
+Внутренняя карта подключенного узла не будет обновлена ​​немедленно, поэтому
+G не заметит присутствия H и подключится к другому узлу.
+
+Со следующим QSPN внутренняя карта узла будет обновлена, H заметит, что G является его ближайшим узлом, и наоборот.
+
+Узел с наименьшим IP создаст новый vlink к другому
+(не удаляя свои старые vlink), таким образом H и G будут связаны.
+
+
+
 Let H and G be two near nodes that vhook nearly at same time (first H then G).
 The internal map of the hooked gnode, won't be updated immediately, therefore
 G won't notice the presence of H and will hook to another node.
@@ -437,6 +729,10 @@ The node which has the smallest IP will create a new vlink to the other
 (without deleting its old vlinks), in this way H and G will be connected.
 
 ## Load balancing ##
+
+Все узлы, имеющие подключение к Интернету, должны быть узлами-шлюзами. 
+Таким образом, трафик, проходящий по виртуальному слою, будет хорошо сбалансирован.
+Например, два отдельных физических узла будут связаны максимальным количеством виртуальных соединений.
 
 All the nodes, which have an Internet connection, should be gate nodes. 
 In this way, the traffic passing on the virtual layer will be well balanced.
@@ -458,6 +754,13 @@ number of virtual links.
 
 ## Internet Gateway Search ##
 
+Узел не может подключиться к виртуальной сети, используя интернет-подключение, предоставленное
+через систему IGS (см. NTK_RFC 003).
+
+Узел vnode может предоставить свое интернет-подключение только другим узлам, которые
+физически доступны.
+
+
 A node cannot hook to the virtual network using an Internet connection shared
 through the IGS system (see NTK_RFC 003).
 
@@ -466,6 +769,10 @@ physically reachable.
 
 ## The end of Viphilama ##
 
+Когда все узлы будут связаны физическими ссылками, Viphilama автоматически прекратит работу. Фактически, всегда будет физический маршрут,
+который соединяет любой другой узел, и поэтому все виртуальные ссылки будут удалены.
+
+
 When all the nodes will be linked with physical links, Viphilama will
 automatically cease to operate. In fact, there will be always a physical route
 which connects any other node and therefore all the virtual links will be
@@ -473,12 +780,33 @@ deleted.
 
 # Entry nodes and servers
 
+Первый vnode, к которому обращается узел, который подключается к виртуальному слою, — это узел входа (EN).
+
+Серверы входа ведут публичный список узлов входа.
+
+
 The first vnode contacted by a node, which is hooking to the virtual layer,
 it's the Entry Node (EN).
 
 The Entry Servers keep a public list of Entry Nodes.
 
 ## Entry node
+
+EN — это обычный vnode, который принимается для включения в публичный список, поддерживаемый серверами входа. 
+EN должен иметь как минимум среднюю пропускную способность.
+
+Узел входа, чтобы быть зарегистрированным в публичном списке, периодически отправляет обновление серверу входа:
+
+* EN связывается с сервером входа и получает его Netsukuku IP.
+
+* EN загружает билет с сервера входа. Билет — это просто уникальный номер, сгенерированный в данный момент, который должен быть загружен исключительно с виртуального уровня. Билет используется ES для проверки того, что EN действительно является vnode.
+
+* EN отправляет пакет обновления в ES через Интернет. Пакет содержит билет, координаты EN и его уникальный идентификатор. Идентификатор — это случайная строка, сгенерированная EN при отправке своего первого обновления. Идентификатор используется ES для идентификации EN.
+
+* через 300 секунд EN снова отправляет обновление, используя ту же процедуру.
+
+Если указано в параметрах ntkd, vnode может стать узлом входа после 3 дней бесперебойной работы.
+
 
 An EN is a normal vnode which accepts to be listed on the public list
 maintained by the Entry Servers. 
@@ -500,6 +828,19 @@ days of uptime.
 
 ## Entry Server
 
+Entry Server — это выделенный сервер, который хранит публичный список EN.
+Список упорядочен по времени безотказной работы, поэтому самые старые EN находятся наверху.
+
+Если EN не отправляет обновление, он удаляется из списка.
+
+Может быть несколько ES, соединенных вместе. Каждый ES знает некоторые другие доверенные
+ES, которые, в свою очередь, должны доверять ему. Доверенные ES делятся своим открытым
+ключом RSA. Когда один ES получает обновление от EN, он пересылает пакет обновления
+своим доверенным ES, подписывая его своим закрытым ключом. Доверенные ES пересылают пакет обновления
+своим доверенным ES и так далее.
+
+
+
 The Entry Server is a dedicated server which keeps the public list of ENs.
 The list is ordered by uptime, thus the oldest ENs are on top.
 
@@ -516,11 +857,34 @@ graph TD
     ES1 <--> ES2 <--> ES3 <--> ES4 --> MES1 --> MES2 --> MES3
 ```
 
+Есть также Mirror Entry Server. Они имеют привилегии только на чтение, т. е.
+они могут только получать обновления от ES или другого MES, но не могут отправлять их ни в какой ES.
+
 There are also the Mirror Entry Server. They have read-only privileges, i.e.
 they can only receive an update from an ES or another MES, but they can't send
 it to any ES.
 
 ### Downloading the Entry Node list
+
+Узел, который подключается к виртуальному слою, загрузит список узлов входа в нескольких случаях:
+
+* Когда он подключается к виртуальному слою в первый раз
+
+* Когда все узлы входа, присутствующие в его кэшированном списке, недоступны
+
+Когда узел загружает список, он выполняет следующие шаги:
+
+* он выбирает ближайший ES или MES, например, если он находится в Японии, он выбирает сервер входа .jp.
+
+* он дает ES свои собственные координаты
+
+* наконец, сервер входа дает узлу список из 16 случайных узлов входа, которые находятся рядом с координатами, указанными узлом.
+
+---- 
+
+Не стесняйтесь помогать разработке Viphilama.
+
+
 
 A node, which is hooking to the virtual layer, will download the Entry Node
 list in few cases:
