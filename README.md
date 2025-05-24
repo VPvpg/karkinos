@@ -7,6 +7,14 @@
 
 </div>
 
+=
+
+Karkinos — это реализация протокола Netsukuku (Npv7_HT) в Rust. Karkinos стремится быть полностью совместимым с Netsukuku C.
+
+⚠️ Имейте в виду, что я не разработчик Rust.
+
+=
+
 Karkinos is an implementation of the [Netsukuku Protocol (Npv7_HT)](https://github.com/d0p1s4m4/netsukuku/blob/master/meta/doc/main_doc/netsukuku) in rust.
 Karkinos aims to be fully compatible with [Netsukuku C](https://github.com/d0p1sh4m4/netsukuku).
 
